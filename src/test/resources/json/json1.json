@@ -1,0 +1,30 @@
+{
+  "alpha": 123,
+  "beta": 456,
+  "gamma": 888,
+  "delta": "A string",
+  "epsilon": true,
+  "sigma": 123456789123456789,
+  "omicron": 1.5,
+  "phi": null,
+  "substructure": {
+    "one": 111,
+    "two": 222
+  },
+  "powersOfTen": [ 1, 10, 100, 1000, 10000 ],
+  "heterogeneousArray": [ 1, "hello", true, null ],
+  "complexArray": [
+    {
+      "f1": "AAA"
+    },
+    {
+      "f1": "BBB"
+    },
+    {
+      "f1": "CCC"
+    },
+    {
+      "f1": "DDD"
+    }
+  ]
+}

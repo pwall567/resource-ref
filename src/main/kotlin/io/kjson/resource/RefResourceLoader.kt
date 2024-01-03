@@ -25,13 +25,20 @@
 
 package io.kjson.resource
 
+import java.net.URI
+
 import io.kjson.JSON
 import io.kjson.JSON.asObject
 import io.kjson.JSON.asStringOrNull
 import io.kjson.JSONObject
 import io.kjson.yaml.YAML
-import java.net.URI
 
+/**
+ * A [ResourceLoader] to read structured JSON or YAML resources, allowing them to be used in conjunction with the
+ * [ResourceRef] class.
+ *
+ * @author  Peter Wall
+ */
 class RefResourceLoader : ResourceLoader<JSONObject>() {
 
     private val resourceCache = mutableMapOf<String, JSONObject>()

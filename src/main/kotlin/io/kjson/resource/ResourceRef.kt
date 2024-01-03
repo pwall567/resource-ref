@@ -2,7 +2,7 @@
  * @(#) ResourceRef.kt
  *
  * resource-ref  Library to manage Resource references using URI and JSON Pointer
- * Copyright (c) 2023 Peter Wall
+ * Copyright (c) 2023, 2024 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,10 @@
 
 package io.kjson.resource
 
+import kotlin.reflect.typeOf
+
+import java.net.URL
+
 import io.kjson.JSON.typeError
 import io.kjson.JSONObject
 import io.kjson.JSONStructure
@@ -32,12 +36,20 @@ import io.kjson.JSONValue
 import io.kjson.pointer.JSONPointer
 import io.kjson.pointer.JSONRef
 import io.kjson.pointer.JSONRef.Companion.refClassName
-import kotlin.reflect.typeOf
 
+/**
+ * A Resource Reference, combining a Resource (as described by a [URL]) and a [JSONRef] pointing to a specific location
+ * within the Resource.
+ *
+ * @author  Peter Wall
+ */
 class ResourceRef<out J : JSONValue?>(
     val resource: Resource<JSONObject>,
     val ref: JSONRef<J>,
 ) {
+
+    val resourceURL: URL
+        get() = resource.resourceURL
 
     val node: J
         get() = ref.node
@@ -47,7 +59,7 @@ class ResourceRef<out J : JSONValue?>(
 
     inline fun <reified T : JSONStructure<*>> parent(): ResourceRef<T> = parent { parentNode ->
         if (parentNode !is T)
-            parentNode.typeError(typeOf<T>().refClassName(), ref.pointer, nodeName = "Parent")
+            parentNode.typeError(typeOf<T>().refClassName(), ResourceRef(resource, ref.parent()), nodeName = "Parent")
         parentNode
     }
 
@@ -56,32 +68,51 @@ class ResourceRef<out J : JSONValue?>(
         ref = ref.parent(checkType),
     )
 
+    /**
+     * Create a child reference, checking the type of the target node.
+     */
     inline fun <reified T : JSONValue?> createTypedChildRef(token: String, targetNode: JSONValue?): ResourceRef<T> =
-        ResourceRef(
-            resource = resource,
-            ref = ref.createTypedChildRef(token, targetNode),
-        )
+        if (targetNode is T)
+            createChildRef(token, targetNode)
+        else
+            targetNode.typeError(typeOf<T>().refClassName(), createChildRef(token, targetNode), "Child")
 
+    /**
+     * Create a child reference.
+     */
     fun <T : JSONValue?> createChildRef(token: String, targetNode: T): ResourceRef<T> = ResourceRef(
         resource = resource,
         ref = ref.createChildRef(token, targetNode),
     )
 
+    /**
+     * "Downcast" a reference to a particular type, or throw an exception if the target is not of that type.
+     */
     @Suppress("UNCHECKED_CAST")
     inline fun <reified T : JSONValue?> asRef(nodeName: String = "Node"): ResourceRef<T> = if (ref.node is T)
         this as ResourceRef<T>
     else
-        ref.node.typeError(typeOf<T>().refClassName(), pointer, nodeName)
+        ref.node.typeError(typeOf<T>().refClassName(), this, nodeName)
 
+    /**
+     * Test whether reference refers to a nominated type.
+     */
     inline fun <reified T : JSONValue?> isRef(): Boolean = ref.node is T
 
-    override fun equals(other: Any?): Boolean = this === other ||
-            other is ResourceRef<*> && resource == other.resource && ref == other.ref
-
-    override fun hashCode(): Int = resource.hashCode() xor ref.hashCode()
-
-    override fun toString(): String = "${resource.resourceURL}#${ref.pointer}"
-
+    /**
+     * Resolve a relative reference in the form "resource#node", as is commonly used in references in (for example) JSON
+     * Schema files.  The relative reference may include a resource reference to be resolved as specified by
+     * [RFC-3986](https://www.rfc-editor.org/info/rfc3986), followed by an optional "`#`" sign and "fragment"
+     * identifier.
+     *
+     * There are, in effect, three cases:
+     * 1. A relative URI with no fragment; in this case the function will attempt to locate the resource identified by
+     *    the relative URI, and return a `ResourceRef` pointing to the root of the object.
+     * 2. A relative URI with a fragment; the function will attempt to locate the resource as above, and will then set
+     *    the pointer within the resource to the node identified by the fragment.
+     * 3. A fragment (with preceding "`#`" sign) only; the function will set the pointer to the node identified by the
+     *    fragment in the current resource.
+     */
     fun resolve(relativeRef: String): ResourceRef<JSONObject> {
         val hashIndex = relativeRef.indexOf('#')
         return when {
@@ -108,7 +139,37 @@ class ResourceRef<out J : JSONValue?>(
                 )
             }
         }
-
     }
+
+    override fun equals(other: Any?): Boolean = this === other ||
+            other is ResourceRef<*> && resource == other.resource && ref == other.ref
+
+    override fun hashCode(): Int = resource.hashCode() xor ref.hashCode()
+
+    override fun toString(): String {
+//        val url = resource.resourceURL
+//        val base = if (url.protocol == "file") {
+//            val path = resourceURL.path.let { if (it.startsWith("///")) it.drop(2) else it }
+//            // some run-time libraries may create URL as file:///path, while others may use file:/path
+//            if (path.startsWith(currentPath))
+//                path.drop(currentPath.length)
+//            else
+//                path
+//        } else
+//            url.toString()
+        return "$resource#${ref.pointer}"
+    }
+
+//    companion object {
+//
+//        val currentPath by lazy {
+//            val cwd = File(".").absolutePath
+//            if (cwd.endsWith("/."))
+//                cwd.dropLast(1)
+//            else
+//                "$cwd/"
+//        }
+//
+//    }
 
 }
