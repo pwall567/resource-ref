@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.1] - 2024-01-22
+### Changed
+- `pom.xml`: updated dependency version
+
 ## [1.0] - 2024-01-03
 ### Changed
 - `ResourceRef`, `Extension.kt`: added more functions

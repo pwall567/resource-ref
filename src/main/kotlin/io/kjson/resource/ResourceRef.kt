@@ -147,29 +147,7 @@ class ResourceRef<out J : JSONValue?>(
     override fun hashCode(): Int = resource.hashCode() xor ref.hashCode()
 
     override fun toString(): String {
-//        val url = resource.resourceURL
-//        val base = if (url.protocol == "file") {
-//            val path = resourceURL.path.let { if (it.startsWith("///")) it.drop(2) else it }
-//            // some run-time libraries may create URL as file:///path, while others may use file:/path
-//            if (path.startsWith(currentPath))
-//                path.drop(currentPath.length)
-//            else
-//                path
-//        } else
-//            url.toString()
         return "$resource#${ref.pointer}"
     }
-
-//    companion object {
-//
-//        val currentPath by lazy {
-//            val cwd = File(".").absolutePath
-//            if (cwd.endsWith("/."))
-//                cwd.dropLast(1)
-//            else
-//                "$cwd/"
-//        }
-//
-//    }
 
 }
