@@ -2,6 +2,14 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [1.5] - 2024-02-25
+### Changed
+- `pom.xml`: updated dependency version
+
+## [1.4] - 2024-02-22
+### Changed
+- `RefResourceLoader`: fixed bug in caching
+
 ## [1.3] - 2024-02-14
 ### Changed
 - `pom.xml`: updated dependency versions
