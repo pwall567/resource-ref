@@ -2,7 +2,7 @@
  * @(#) RefResourceLoader.kt
  *
  * resource-ref  Library to manage Resource references using URI and JSON Pointer
- * Copyright (c) 2023 Peter Wall
+ * Copyright (c) 2023, 2024 Peter Wall
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,31 +43,53 @@ class RefResourceLoader : ResourceLoader<JSONObject>() {
 
     private val resourceCache = mutableMapOf<String, JSONObject>()
 
+    /**
+     * Load the resource identified by a [Resource] object.  This function returns a cached copy if available.
+     */
+    override fun load(resource: Resource<JSONObject>): JSONObject {
+        resourceCache[resource.resourceURL.toString()]?.let { return it }
+        return load(openResource(resource))
+    }
+
+    /**
+     * Perform the actual load of a resource identified by a [ResourceDescriptor].  On completion it stores the resource
+     * in the cache under the URL used to locate the resource, and also under the `$id` property at the top level of the
+     * resource (if present).
+     */
     override fun load(rd: ResourceDescriptor): JSONObject {
-        val urlString = rd.url.toString()
-        resourceCache[urlString]?.let { return it }
         return rd.getReader().use {
-            if (looksLikeYAML(urlString, rd.mimeType))
+            if (looksLikeYAML(rd.url.path, rd.mimeType))
                 YAML.parse(it).rootNode
             else
                 JSON.parse(it.readText())
         }.asObject.also {
-            resourceCache[urlString] = it
+            resourceCache[rd.url.toString()] = it
             it["\$id"].asStringOrNull?.let { id ->
                 resourceCache[URI(id).withFragment(null).toString()] = it
             }
         }
     }
 
-    private fun looksLikeYAML(urlString: String, mimeType: String?): Boolean {
-        mimeType?.let {
-            if (it.contains("yaml", ignoreCase = true) || it.contains("yml", ignoreCase = true))
-                return true
-        }
-        return urlString.endsWith(".yaml", ignoreCase = true) || urlString.endsWith(".yml", ignoreCase = true)
+    /**
+     * Clear the cache.
+     */
+    fun clearCache() {
+        resourceCache.clear()
+    }
+
+    fun removeFromCache(urlString: String) {
+        resourceCache.remove(urlString)
     }
 
     companion object {
+
+        fun looksLikeYAML(urlPath: String, mimeType: String?): Boolean {
+            mimeType?.let {
+                if (it.contains("yaml", ignoreCase = true) || it.contains("yml", ignoreCase = true))
+                    return true
+            }
+            return urlPath.endsWith(".yaml", ignoreCase = true) || urlPath.endsWith(".yml", ignoreCase = true)
+        }
 
         fun URI.withFragment(newFragment: String?): URI = when {
             fragment == newFragment -> this
