@@ -81,6 +81,10 @@ class RefResourceLoader : ResourceLoader<JSONObject>() {
         resourceCache.remove(urlString)
     }
 
+    fun addToCache(urlString: String, json: JSONObject) {
+        resourceCache[urlString] = json
+    }
+
     companion object {
 
         fun looksLikeYAML(urlPath: String, mimeType: String?): Boolean {

@@ -47,6 +47,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertSame
+import io.kjson.pointer.child
 
 class ResourceRefTest {
 
@@ -135,24 +136,35 @@ class ResourceRefTest {
     }
 
     @Test fun `should resolve relative reference within same resource`() {
-        val ref1 = resourceRef.resolve("#/substructure")
+        val ref1 = resourceRef.resolve<JSONObject>("#/substructure")
         expect(JSONInt(222)) { ref1.node["two"] }
-        val ref2 = ref1.resolve("#/complexArray/2")
+        val ref2 = ref1.resolve<JSONObject>("#/complexArray/2")
         expect(JSONString("CCC")) { ref2.node["f1"] }
     }
 
     @Test fun `should resolve relative reference to another resource`() {
-        val ref1 = resourceRef.resolve("json2.json")
+        val ref1 = resourceRef.resolve<JSONObject>("json2.json")
         expect(JSONInt(12345)) { ref1.node["field1"] }
     }
 
     @Test fun `should resolve relative reference to specified node in another resource`() {
-        val ref1 = resourceRef.resolve("json2.json#/field2")
+        val ref1 = resourceRef.resolve<JSONObject>("json2.json#/field2")
         expect(JSONInt(10)) { ref1.node["sub1"] }
     }
 
+    @Test fun `should fail when trying to resolve incorrect relative reference`() {
+        assertFailsWith<ResourceRefException> { resourceRef.resolve<JSONObject>("json2.json#/field2/wrong") }.let {
+            expect("Can't locate JSON property \"wrong\", at src/test/resources/json/json2.json#/field2") { it.message }
+            expect("Can't locate JSON property \"wrong\"") { it.text }
+            val resultResource = loader.resource(File("src/test/resources/json/json2.json"))
+            val resultRef = JSONRef(resultResource.load()).child<JSONObject>("field2")
+            expect(ResourceRef(resultResource, resultRef)) { it.resourceRef }
+            expect(resultRef.pointer) { it.pointer }
+        }
+    }
+
     @Test fun `should resolve relative reference to specified node in an external resource`() {
-        val ref1 = resourceRef.resolve("http://kjson.io/json/http/testhttp1.json#/properties/xxx")
+        val ref1 = resourceRef.resolve<JSONObject>("http://kjson.io/json/http/testhttp1.json#/properties/xxx")
         expect(JSONString("http://kjson.io/json/http/testhttp2.json#/\$defs/Def1")) { ref1.node["\$ref"] }
     }
 

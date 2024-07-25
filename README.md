@@ -1,8 +1,8 @@
 # resource-ref
 
-[![Build Status](https://travis-ci.com/pwall567/resource-ref.svg?branch=main)](https://app.travis-ci.com/github/pwall567/resource-ref)
+[![Build Status](https://github.com/pwall567/resource-ref/actions/workflows/build.yml/badge.svg)](https://github.com/pwall567/resource-ref/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.8.22&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.8.22)
+[![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v1.9.24&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v1.9.24)
 [![Maven Central](https://img.shields.io/maven-central/v/io.kjson/resource-ref?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.kjson%22%20AND%20a:%22resource-ref%22)
 
 Library to manage Resource references using [URI](https://www.rfc-editor.org/info/rfc3986) and
@@ -75,25 +75,25 @@ More documentation to follow&hellip;
 
 ## Dependency Specification
 
-The latest version of the library is 1.5, and it may be obtained from the Maven Central repository.
+The latest version of the library is 2.0, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>io.kjson</groupId>
       <artifactId>resource-ref</artifactId>
-      <version>1.5</version>
+      <version>2.0</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'io.kjson:kjson-pointer:1.5'
+    implementation 'io.kjson:kjson-pointer:2.0'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("io.kjson:kjson-pointer:1.5")
+    implementation("io.kjson:kjson-pointer:2.0")
 ```
 
 Peter Wall
 
-2024-02-25
+2024-07-25

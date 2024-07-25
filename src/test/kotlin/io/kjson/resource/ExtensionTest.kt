@@ -47,7 +47,6 @@ import io.kjson.JSONTypeException
 import io.kjson.JSONValue
 import io.kjson.JSON.asInt
 import io.kjson.JSON.asString
-import io.kjson.pointer.JSONPointerException
 import io.kjson.pointer.JSONRef
 
 class ExtensionTest {
@@ -147,22 +146,26 @@ class ExtensionTest {
             it.value
         }
         expect(456) { beta }
-        assertFailsWith<JSONPointerException> {
+        assertFailsWith<ResourceRefException> {
             resourceRef.map<JSONInt, Int>("omega") { it.value }
         }.let {
-            assertTrue(it.message.startsWith("Node does not exist"))
-            assertTrue(it.message.endsWith("src/test/resources/json/json1.json#/omega"))
+            assertTrue(it.message.startsWith("Can't locate JSON property \"omega\""))
+            assertTrue(it.message.endsWith("src/test/resources/json/json1.json#"))
+            expect("Can't locate JSON property \"omega\"") { it.text }
+            expect(resourceRef) { it.resourceRef }
         }
         val gamma: Int = resourceRef.map("gamma") { prop: JSONInt -> prop.value }
         expect(888) { gamma }
         // alternative, following deprecation of original function, using recommended replacement code
         val beta2 = resourceRef.child<JSONInt>("beta").value
         expect(456) { beta2 }
-        assertFailsWith<JSONPointerException> {
+        assertFailsWith<ResourceRefException> {
             resourceRef.child<JSONInt>("omega").value
         }.let {
-            assertTrue(it.message.startsWith("Node does not exist"))
-            assertTrue(it.message.endsWith("src/test/resources/json/json1.json#/omega"))
+            assertTrue(it.message.startsWith("Can't locate JSON property \"omega\""))
+            assertTrue(it.message.endsWith("src/test/resources/json/json1.json#"))
+            expect("Can't locate JSON property \"omega\"") { it.text }
+            expect(resourceRef) { it.resourceRef }
         }
     }
 

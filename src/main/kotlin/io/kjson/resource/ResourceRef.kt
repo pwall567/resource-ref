@@ -34,12 +34,18 @@ import io.kjson.JSONObject
 import io.kjson.JSONStructure
 import io.kjson.JSONValue
 import io.kjson.pointer.JSONPointer
+import io.kjson.pointer.JSONPointerException
 import io.kjson.pointer.JSONRef
 import io.kjson.pointer.JSONRef.Companion.refClassName
 
 /**
  * A Resource Reference, combining a Resource (as described by a [URL]) and a [JSONRef] pointing to a specific location
  * within the Resource.
+ *
+ * The functions of this class (and the extension functions declared elsewhere) largely mirror those of [JSONRef], but
+ * it was not possible for this class to use [JSONRef] as a base class (and thereby inherit the functionality) because
+ * several of the functions that would need to be specialised in the derived class are inline functions with reified
+ * type parameters, and Kotlin does not allow such functions to be overridden.
  *
  * @author  Peter Wall
  */
@@ -48,21 +54,30 @@ class ResourceRef<out J : JSONValue?>(
     val ref: JSONRef<J>,
 ) {
 
+    /** The URL of the [Resource] */
     val resourceURL: URL
         get() = resource.resourceURL
 
+    /** The `node` of the [JSONRef] */
     val node: J
         get() = ref.node
 
+    /** The `pointer` of the [JSONRef] */
     val pointer: JSONPointer
         get() = ref.pointer
 
+    /**
+     * Get the strongly-typed parent reference of this reference.
+     */
     inline fun <reified T : JSONStructure<*>> parent(): ResourceRef<T> = parent { parentNode ->
         if (parentNode !is T)
             parentNode.typeError(typeOf<T>().refClassName(), ResourceRef(resource, ref.parent()), nodeName = "Parent")
         parentNode
     }
 
+    /**
+     * Get the parent reference of this reference (using a supplied checking function to confirm the type).
+     */
     fun <T : JSONStructure<*>> parent(checkType: (JSONValue?) -> T): ResourceRef<T> = ResourceRef(
         resource = resource,
         ref = ref.parent(checkType),
@@ -113,32 +128,49 @@ class ResourceRef<out J : JSONValue?>(
      * 3. A fragment (with preceding "`#`" sign) only; the function will set the pointer to the node identified by the
      *    fragment in the current resource.
      */
-    fun resolve(relativeRef: String): ResourceRef<JSONObject> {
+    inline fun <reified JJ : JSONValue?> resolve(relativeRef: String): ResourceRef<JJ> {
         val hashIndex = relativeRef.indexOf('#')
-        return when {
-            hashIndex < 0 -> {
-                val target = resource.resolve(relativeRef)
-                val json = target.load()
-                ResourceRef(
-                    resource = target,
-                    ref = JSONRef(json),
-                )
-            }
+
+        val resolvedResource: Resource<JSONObject>
+        val resolvedRef: JSONRef<JJ>
+
+        when {
             hashIndex == 0 -> {
-                ResourceRef(
-                    resource = resource,
-                    ref = JSONRef.of(ref.base, JSONPointer.fromURIFragment(relativeRef.substring(1))),
-                )
+                resolvedResource = resource
+                resolvedRef = createRef<JJ>(resource, ref.base, relativeRef.substring(1))
+            }
+            hashIndex < 0 -> {
+                resolvedResource = resource.resolve(relativeRef)
+                resolvedRef = JSONRef(resolvedResource.load()).asRef<JJ>()
             }
             else -> {
-                val target = resource.resolve(relativeRef.substring(0, hashIndex))
-                val json = target.load()
-                ResourceRef(
-                    resource = target,
-                    ref = JSONRef.of(json, JSONPointer.fromURIFragment(relativeRef.substring(hashIndex + 1))),
-                )
-            }
+                resolvedResource = resource.resolve(relativeRef.substring(0, hashIndex))
+                val resolvedJSON = resolvedResource.load()
+                resolvedRef = createRef<JJ>(resolvedResource, resolvedJSON, relativeRef.substring(hashIndex + 1))
+            } // TODO test the above
         }
+        return ResourceRef(
+            resource = resolvedResource,
+            ref = resolvedRef,
+        )
+    }
+
+    /**
+     * Create the `JSONRef`, catching any [JSONPointerException] and re-throwing it as a [ResourceRefException].
+     */
+    inline fun <reified JJ : JSONValue?> createRef(
+        resource: Resource<JSONObject>,
+        json: JSONValue?,
+        uriFragment: String,
+    ): JSONRef<JJ> = try {
+        JSONRef.of<JJ>(json, JSONPointer.fromURIFragment(uriFragment))
+    } catch (e: JSONPointerException) {
+        throw ResourceRefException(
+            text = e.text,
+            resourceRef = e.pointer?.let {
+                ResourceRef(resource, JSONRef.of(json, it))
+            },
+        ).withCause(e)
     }
 
     override fun equals(other: Any?): Boolean = this === other ||

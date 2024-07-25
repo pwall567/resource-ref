@@ -38,7 +38,6 @@ import io.kjson.JSONObject
 import io.kjson.JSONPrimitive
 import io.kjson.JSONString
 import io.kjson.JSONValue
-import io.kjson.pointer.JSONPointerException
 import io.kjson.pointer.JSONRef
 import io.kjson.pointer.hasChild
 
@@ -220,7 +219,7 @@ inline fun <reified T : JSONValue?> ResourceRef<JSONArray>.hasChild(index: Int):
  */
 fun ResourceRef<JSONObject>.checkName(name: String) {
     if (!ref.node.containsKey(name))
-        throw JSONPointerException("Node does not exist", "$this/$name")
+        throw ResourceRefException("Can't locate JSON property \"$name\"", this)
 }
 
 /**
@@ -228,7 +227,7 @@ fun ResourceRef<JSONObject>.checkName(name: String) {
  */
 fun ResourceRef<JSONArray>.checkIndex(index: Int) {
     if (index !in ref.node.indices)
-        throw JSONPointerException("Index not valid", "$this/$index")
+        throw ResourceRefException("Array index $index out of range in JSON Pointer", this)
 }
 
 /**
