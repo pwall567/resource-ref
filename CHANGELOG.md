@@ -2,6 +2,10 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [2.1] - 2024-08-06
+### Changed
+- `pom.xml`: updated dependency version
+
 ## [2.0] - 2024-07-24
 ### Added
 - `build.yml`, `deploy.yml`: converted project to GitHub Actions
