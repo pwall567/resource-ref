@@ -21,10 +21,14 @@ YAML resources.
 
 ## Quick Start
 
-First, get an instance of `RefResourceLoader`:
+### `RefResourceLoader`
+
+First, get an instance of `RefResourceLoader` (a form of `ResourceLoader` that will load JSON or YAML files):
 ```kotlin
     val loader = RefResourceLoader()
 ```
+
+### `Resource`
 
 Then, you can get a `Resource` in one of a number of ways:
 ```kotlin
@@ -34,11 +38,19 @@ Then, you can get a `Resource` in one of a number of ways:
     val classpathResource = loader.resource(Resource.classPathURL("path.to.file")!!)     // using classpath
 ```
 
+In the case of `RefResourceLoader`, the `Resource` will be a `Resource<JSONObject>`.
+
+The `Resource` is not the resource itself, but an object providing:
+- access to the resource by means of the `load()` function
+- navigation to child, parent and sibling resources using the `resolve()` function
+
+### `ResourceRef`
+
 The `ref()` extension function on the `Resource` will load the resource as JSON, or if it has an extension of `.yaml` or
 `.yml`, or it is an HTTP(S) resource with a MIME type containing "yaml" or "yml" (there is no official MIME type for
 YAML) it will load the resource as YAML, and return a `ResourceRef<JSONObject>`.
 ```kotlin
-    val ref = resource.ref()
+    val ref: ResourceRef<JSONObject> = resource.ref()
 ```
 
 The `ResourceRef` has two properties (both publicly accessible):
@@ -54,14 +66,16 @@ Most of the functions available on `JSONRef` and also available on `ResourceRef`
 `optionalString()` _etc._ (see [`JSONRef`](https://github.com/pwall567/kjson-pointer#jsonref) for more details), but
 because the `ResourceRef` also carries the URL used to locate the resource, error messages will be much more helpful.
 
+### `resolve()`
+
 And the `ResourceRef` also has the function that combines the two areas of functionality &ndash; the `resolve()`
 function will take a relative reference of the form "resource#node" and return a new `ResourceRef` pointing to the
 specified location.
 ```kotlin
-    val targetRef = ref.resolve(destination)
+    val targetRef = ref.resolve<JSONObject>(destination)
 ```
 
-There are three possibilities:
+There are three possibilities for the parameter string:
 1. Relative URI with no fragment (the part following the "`#`" sign) &ndash; in this case the function will attempt to
    locate the resource identified by the relative URI using [RFC-3986](https://www.rfc-editor.org/info/rfc3986), and
    return a `ResourceRef` pointing to the root of the object.
@@ -71,29 +85,32 @@ There are three possibilities:
 3. A fragment (with preceding "`#`" sign) only &ndash; the function will return a new `ResourceRef` for the current
    resource, with the pointer set to the node identified by the fragment.
 
+A `resolve()` operation with no fragment specified will always return a `ResourceRef<JSONObject>`; when a fragment is
+provided the `ResourceRef` parameter type may be any type assignable to `JSONValue?`.
+
 More documentation to follow&hellip;
 
 ## Dependency Specification
 
-The latest version of the library is 2.1, and it may be obtained from the Maven Central repository.
+The latest version of the library is 2.2, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>io.kjson</groupId>
       <artifactId>resource-ref</artifactId>
-      <version>2.1</version>
+      <version>2.2</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'io.kjson:kjson-pointer:2.1'
+    implementation 'io.kjson:kjson-pointer:2.2'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("io.kjson:kjson-pointer:2.1")
+    implementation("io.kjson:kjson-pointer:2.2")
 ```
 
 Peter Wall
 
-2024-08-06
+2024-08-19

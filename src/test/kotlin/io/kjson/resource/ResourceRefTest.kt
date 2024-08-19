@@ -25,15 +25,19 @@
 
 package io.kjson.resource
 
-import io.kjson.JSON.asInt
-import io.kjson.JSONArray
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.test.expect
 
 import java.io.File
 import java.net.URL
 
+import io.kjson.JSON.asInt
+import io.kjson.JSONArray
 import io.kjson.JSONInt
 import io.kjson.JSONNumber
 import io.kjson.JSONObject
@@ -43,10 +47,6 @@ import io.kjson.JSONValue
 import io.kjson.pointer.JSONPointer
 import io.kjson.pointer.JSONPointerException
 import io.kjson.pointer.JSONRef
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertSame
 import io.kjson.pointer.child
 
 class ResourceRefTest {

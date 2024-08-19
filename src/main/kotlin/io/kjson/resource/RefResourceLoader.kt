@@ -87,7 +87,7 @@ class RefResourceLoader : ResourceLoader<JSONObject>() {
 
     companion object {
 
-        fun looksLikeYAML(urlPath: String, mimeType: String?): Boolean {
+        fun looksLikeYAML(urlPath: String, mimeType: String? = null): Boolean {
             mimeType?.let {
                 if (it.contains("yaml", ignoreCase = true) || it.contains("yml", ignoreCase = true))
                     return true

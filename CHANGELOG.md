@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [2.2] - 2024-08-19
+### Changed
+- `RefResourceLoader`: added default parameter to `looksLikeYAML()` function
+- `pom.xml`: updated dependency versions
+- tests: Minor code tidy
+
 ## [2.1] - 2024-08-06
 ### Changed
 - `pom.xml`: updated dependency version
