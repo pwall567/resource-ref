@@ -91,6 +91,8 @@ class RefResourceLoader : ResourceLoader<JSONObject>() {
             mimeType?.let {
                 if (it.contains("yaml", ignoreCase = true) || it.contains("yml", ignoreCase = true))
                     return true
+                if (it.contains("json", ignoreCase = true))
+                    return false
             }
             return urlPath.endsWith(".yaml", ignoreCase = true) || urlPath.endsWith(".yml", ignoreCase = true)
         }
