@@ -92,25 +92,25 @@ More documentation to follow&hellip;
 
 ## Dependency Specification
 
-The latest version of the library is 2.3, and it may be obtained from the Maven Central repository.
+The latest version of the library is 2.4, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>io.kjson</groupId>
       <artifactId>resource-ref</artifactId>
-      <version>2.3</version>
+      <version>2.4</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'io.kjson:kjson-pointer:2.3'
+    implementation 'io.kjson:kjson-pointer:2.4'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("io.kjson:kjson-pointer:2.3")
+    implementation("io.kjson:kjson-pointer:2.4")
 ```
 
 Peter Wall
 
-2024-09-04
+2024-11-13
