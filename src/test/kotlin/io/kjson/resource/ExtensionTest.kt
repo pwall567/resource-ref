@@ -56,7 +56,7 @@ class ExtensionTest {
     private val resourceRef = ResourceRef(
         resource = resource,
         ref = JSONRef(resource.load()),
-    )
+    ).asRef<JSONObject>()
 
     @Test fun `should conditionally execute code`() {
         resourceRef.ifPresent<JSONInt>("alpha") {
@@ -416,8 +416,14 @@ class ExtensionTest {
         assertFalse(ref1.hasChild<JSONValue?>(4))
     }
 
-    @Test fun `should create ResourceRef using ref`() {
-        val ref = resource.ref()
+    @Test fun `should create ResourceRef using ref with explicit type`() {
+        val ref = resource.ref<JSONObject>()
+        expect(123) { ref.optionalInt("alpha") }
+        expect("A string") { ref.optionalString("delta") }
+    }
+
+    @Test fun `should create ResourceRef using ref with implied type`() {
+        val ref: ResourceRef<JSONObject> = resource.ref()
         expect(123) { ref.optionalInt("alpha") }
         expect("A string") { ref.optionalString("delta") }
     }

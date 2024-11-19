@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.0] - 2024-11-19
+### Changed
+- `ResourceRef`, `RefResourceLoader`, `Extension.kt`: removed restriction that `resource` always used `JSONObject`
+- `RefResourceLoader`: added `baseURL` constructor parameter
+- `pom.xml`: updated version of `resource-loader`
+
 ## [2.4] - 2024-11-13
 ### Changed
 - `pom.xml`: updated version of `resource-loader`

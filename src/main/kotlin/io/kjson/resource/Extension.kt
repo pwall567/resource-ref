@@ -233,7 +233,8 @@ fun ResourceRef<JSONArray>.checkIndex(index: Int) {
 /**
  * Load a [Resource] and create a reference.
  */
-fun Resource<JSONObject>.ref(): ResourceRef<JSONObject> = ResourceRef(this, JSONRef(load()))
+inline fun <reified T : JSONValue?> Resource<JSONValue?>.ref(): ResourceRef<T> =
+        ResourceRef(this, JSONRef(load())).asRef()
 
 /** The value of the node. */
 val <T> ResourceRef<JSONPrimitive<T>>.value: T

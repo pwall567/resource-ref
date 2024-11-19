@@ -26,11 +26,12 @@
 package io.kjson.resource
 
 import java.net.URI
+import java.net.URL
 
 import io.kjson.JSON
-import io.kjson.JSON.asObject
 import io.kjson.JSON.asStringOrNull
 import io.kjson.JSONObject
+import io.kjson.JSONValue
 import io.kjson.yaml.YAML
 
 /**
@@ -39,35 +40,41 @@ import io.kjson.yaml.YAML
  *
  * @author  Peter Wall
  */
-class RefResourceLoader : ResourceLoader<JSONObject>() {
+class RefResourceLoader(
+    baseURL: URL = defaultBaseURL(),
+) : ResourceLoader<JSONValue?>(baseURL) {
 
-    private val resourceCache = mutableMapOf<String, JSONObject>()
+    private val resourceCache = mutableMapOf<String, JSONValue?>()
 
     /**
      * Load the resource identified by a [Resource] object.  This function returns a cached copy if available.
      */
-    override fun load(resource: Resource<JSONObject>): JSONObject {
-        resourceCache[resource.resourceURL.toString()]?.let { return it }
+    override fun load(resource: Resource<JSONValue?>): JSONValue? {
+        val cacheKey = resource.resourceURL.toString()
+        if (resourceCache.containsKey(cacheKey))
+            return resourceCache[cacheKey]
         return load(openResource(resource))
     }
 
     /**
-     * Perform the actual load of a resource identified by a [ResourceDescriptor].  On completion it stores the resource
-     * in the cache under the URL used to locate the resource, and also under the `$id` property at the top level of the
-     * resource (if present).
+     * Perform the actual load of a resource identified by a [ResourceDescriptor].  On completion, it stores the
+     * resource in the cache under the URL used to locate the resource, and also under the `$id` property at the top
+     * level of the resource (if present).
      */
-    override fun load(rd: ResourceDescriptor): JSONObject {
-        return rd.getReader().use {
+    override fun load(rd: ResourceDescriptor): JSONValue? {
+        val json = rd.getReader().use {
             if (looksLikeYAML(rd.url.path, rd.mimeType))
                 YAML.parse(it).rootNode
             else
                 JSON.parse(it.readText())
-        }.asObject.also {
-            resourceCache[rd.url.toString()] = it
-            it["\$id"].asStringOrNull?.let { id ->
-                resourceCache[URI(id).withFragment(null).toString()] = it
+        }
+        resourceCache[rd.url.toString()] = json
+        if (json is JSONObject) {
+            json["\$id"].asStringOrNull?.let {
+                resourceCache[URI(it).withFragment(null).toString()] = json
             }
         }
+        return json
     }
 
     /**
@@ -77,16 +84,25 @@ class RefResourceLoader : ResourceLoader<JSONObject>() {
         resourceCache.clear()
     }
 
+    /**
+     * Remove an entry from the cache.
+     */
     fun removeFromCache(urlString: String) {
         resourceCache.remove(urlString)
     }
 
-    fun addToCache(urlString: String, json: JSONObject) {
+    /**
+     * Add an entry to the cache.
+     */
+    fun addToCache(urlString: String, json: JSONValue?) {
         resourceCache[urlString] = json
     }
 
     companion object {
 
+        /**
+         * Check whether a resource should be treated as YAML, based on the MIME type and the filename.
+         */
         fun looksLikeYAML(urlPath: String, mimeType: String? = null): Boolean {
             mimeType?.let {
                 if (it.contains("yaml", ignoreCase = true) || it.contains("yml", ignoreCase = true))
@@ -97,6 +113,9 @@ class RefResourceLoader : ResourceLoader<JSONObject>() {
             return urlPath.endsWith(".yaml", ignoreCase = true) || urlPath.endsWith(".yml", ignoreCase = true)
         }
 
+        /**
+         * Return a [URI] with the fragment set to the given value (which may be `null` to clear it).
+         */
         fun URI.withFragment(newFragment: String?): URI = when {
             fragment == newFragment -> this
             isOpaque -> URI(scheme, schemeSpecificPart, newFragment)

@@ -54,7 +54,7 @@ class ResourceRefTest {
     private val loader = RefResourceLoader()
     private val resource = loader.resource(File("src/test/resources/json/json1.json"))
     private val json = resource.load()
-    private val resourceRef = ResourceRef(resource, JSONRef(json))
+    private val resourceRef = ResourceRef(resource, JSONRef(json)).asRef<JSONObject>()
 
     @Test fun `should create ResourceRef`() {
         assertTrue(resourceRef.resourceURL.toString().endsWith("json/json1.json"))
@@ -157,7 +157,7 @@ class ResourceRefTest {
             expect("Can't locate JSON property \"wrong\", at src/test/resources/json/json2.json#/field2") { it.message }
             expect("Can't locate JSON property \"wrong\"") { it.text }
             val resultResource = loader.resource(File("src/test/resources/json/json2.json"))
-            val resultRef = JSONRef(resultResource.load()).child<JSONObject>("field2")
+            val resultRef = JSONRef(resultResource.load()).asRef<JSONObject>().child<JSONObject>("field2")
             expect(ResourceRef(resultResource, resultRef)) { it.resourceRef }
             expect(resultRef.pointer) { it.pointer }
         }

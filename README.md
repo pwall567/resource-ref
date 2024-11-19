@@ -38,7 +38,7 @@ Then, you can get a `Resource` in one of a number of ways:
     val classpathResource = loader.resource(Resource.classPathURL("path.to.file")!!)     // using classpath
 ```
 
-In the case of `RefResourceLoader`, the `Resource` will be a `Resource<JSONObject>`.
+In the case of `RefResourceLoader`, the `Resource` will be a `Resource<JSONValue?>`.
 
 The `Resource` is not the resource itself, but an object providing:
 - access to the resource by means of the `load()` function
@@ -47,8 +47,9 @@ The `Resource` is not the resource itself, but an object providing:
 ### `ResourceRef`
 
 The `ref()` extension function on the `Resource` will load the resource as JSON, or if it has an extension of `.yaml` or
-`.yml`, or it is an HTTP(S) resource with a MIME type containing "yaml" or "yml" (there is no official MIME type for
-YAML) it will load the resource as YAML, and return a `ResourceRef<JSONObject>`.
+`.yml`, or it is an HTTP(S) resource with a MIME type containing "yaml" or "yml" (the proposed official MIME type for
+YAML is not yet in widespread use) it will load the resource as YAML, and return a `ResourceRef` of the type specified
+to the `ref()` function or implied by the context.
 ```kotlin
     val ref: ResourceRef<JSONObject> = resource.ref()
 ```
@@ -85,32 +86,29 @@ There are three possibilities for the parameter string:
 3. A fragment (with preceding "`#`" sign) only &ndash; the function will return a new `ResourceRef` for the current
    resource, with the pointer set to the node identified by the fragment.
 
-A `resolve()` operation with no fragment specified will always return a `ResourceRef<JSONObject>`; when a fragment is
-provided the `ResourceRef` parameter type may be any type assignable to `JSONValue?`.
-
 More documentation to follow&hellip;
 
 ## Dependency Specification
 
-The latest version of the library is 2.4, and it may be obtained from the Maven Central repository.
+The latest version of the library is 3.0, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>io.kjson</groupId>
       <artifactId>resource-ref</artifactId>
-      <version>2.4</version>
+      <version>3.0</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'io.kjson:kjson-pointer:2.4'
+    implementation 'io.kjson:kjson-pointer:3.0'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("io.kjson:kjson-pointer:2.4")
+    implementation("io.kjson:kjson-pointer:3.0")
 ```
 
 Peter Wall
 
-2024-11-13
+2024-11-20

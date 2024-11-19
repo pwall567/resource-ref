@@ -30,7 +30,6 @@ import kotlin.reflect.typeOf
 import java.net.URL
 
 import io.kjson.JSON.typeError
-import io.kjson.JSONObject
 import io.kjson.JSONStructure
 import io.kjson.JSONValue
 import io.kjson.pointer.JSONPointer
@@ -50,7 +49,7 @@ import io.kjson.pointer.JSONRef.Companion.refClassName
  * @author  Peter Wall
  */
 class ResourceRef<out J : JSONValue?>(
-    val resource: Resource<JSONObject>,
+    val resource: Resource<JSONValue?>,
     val ref: JSONRef<J>,
 ) {
 
@@ -131,7 +130,7 @@ class ResourceRef<out J : JSONValue?>(
     inline fun <reified JJ : JSONValue?> resolve(relativeRef: String): ResourceRef<JJ> {
         val hashIndex = relativeRef.indexOf('#')
 
-        val resolvedResource: Resource<JSONObject>
+        val resolvedResource: Resource<JSONValue?>
         val resolvedRef: JSONRef<JJ>
 
         when {
@@ -159,7 +158,7 @@ class ResourceRef<out J : JSONValue?>(
      * Create the `JSONRef`, catching any [JSONPointerException] and re-throwing it as a [ResourceRefException].
      */
     inline fun <reified JJ : JSONValue?> createRef(
-        resource: Resource<JSONObject>,
+        resource: Resource<JSONValue?>,
         json: JSONValue?,
         uriFragment: String,
     ): JSONRef<JJ> = try {
