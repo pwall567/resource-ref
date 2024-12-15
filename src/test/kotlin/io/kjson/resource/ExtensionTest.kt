@@ -26,16 +26,16 @@
 package io.kjson.resource
 
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.test.expect
 import kotlin.test.fail
 
 import java.io.File
 import java.math.BigDecimal
+
+import io.kstuff.test.shouldBe
+import io.kstuff.test.shouldBeNonNull
+import io.kstuff.test.shouldEndWith
+import io.kstuff.test.shouldStartWith
+import io.kstuff.test.shouldThrow
 
 import io.kjson.JSONArray
 import io.kjson.JSONBoolean
@@ -60,7 +60,7 @@ class ExtensionTest {
 
     @Test fun `should conditionally execute code`() {
         resourceRef.ifPresent<JSONInt>("alpha") {
-            expect(123) { it.value }
+            it.value shouldBe 123
         }
         resourceRef.ifPresent<JSONInt>("omega") {
             fail("Should not get here")
@@ -73,70 +73,70 @@ class ExtensionTest {
     @Test fun `should map contents of array to its primitive type`() {
         val ref = resourceRef.child<JSONArray>("powersOfTen")
         val array = ref.map<JSONInt, Int>()
-        expect(listOf(1, 10, 100, 1000, 10000)) { array }
+        array shouldBe listOf(1, 10, 100, 1000, 10000)
     }
 
     @Test fun `should fail when 'map' operation finds invalid value`() {
         val ref = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { ref.map<JSONInt, Int>() }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONInt") { it.target }
-            expect(JSONString("hello")) { it.value }
-            expect(ref.untypedChild(1)) { it.key }
+        shouldThrow<JSONTypeException> { ref.map<JSONInt, Int>() }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONInt"
+            it.value shouldBe JSONString("hello")
+            it.key shouldBe ref.untypedChild(1)
         }
     }
 
     @Test fun `should map contents of array with transformation`() {
         val ref = resourceRef.child<JSONArray>("powersOfTen")
         val array = ref.map<JSONInt, Int> { value * (it + 1) }
-        expect(listOf(1, 20, 300, 4000, 50000)) { array }
+        array shouldBe listOf(1, 20, 300, 4000, 50000)
     }
 
     @Test fun `should fail when transforming 'map' operation finds invalid value`() {
         val ref = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { ref.map<JSONInt, Int> { value * (it + 1) } }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONInt") { it.target }
-            expect(JSONString("hello")) { it.value }
-            expect(ref.untypedChild(1)) { it.key }
+        shouldThrow<JSONTypeException> { ref.map<JSONInt, Int> { value * (it + 1) } }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONInt"
+            it.value shouldBe JSONString("hello")
+            it.key shouldBe ref.untypedChild(1)
         }
     }
 
     @Test fun `should map contents of array with complex transformation`() {
         val ref = resourceRef.child<JSONArray>("complexArray")
         val array = ref.map<JSONObject, String> { child<JSONString>("f1").value }
-        expect(listOf("AAA", "BBB", "CCC", "DDD")) { array }
+        array shouldBe listOf("AAA", "BBB", "CCC", "DDD")
     }
 
     @Test fun `should test whether any array item matches predicate`() {
         val ref = resourceRef.child<JSONArray>("powersOfTen")
-        assertTrue { ref.any<JSONInt> { value > 100 } }
-        assertFalse { ref.any<JSONInt> { value < 0 } }
+        ref.any<JSONInt> { value > 100 } shouldBe true
+        ref.any<JSONInt> { value < 0 } shouldBe false
     }
 
     @Test fun `should fail when 'any' test finds invalid value`() {
         val ref = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { ref.any<JSONInt> { value > 3 } }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONInt") { it.target }
-            expect(JSONString("hello")) { it.value }
-            expect(ref.untypedChild(1)) { it.key }
+        shouldThrow<JSONTypeException> { ref.any<JSONInt> { value > 3 } }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONInt"
+            it.value shouldBe JSONString("hello")
+            it.key shouldBe ref.untypedChild(1)
         }
     }
 
     @Test fun `should test whether all array items match predicate`() {
         val ref = resourceRef.child<JSONArray>("powersOfTen")
-        assertTrue { ref.all<JSONInt> { value > 0 } }
-        assertFalse { ref.all<JSONInt> { value < 100 } }
+        ref.all<JSONInt> { value > 0 } shouldBe true
+        ref.all<JSONInt> { value < 100 } shouldBe false
     }
 
     @Test fun `should fail when 'all' test finds invalid value`() {
         val ref = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { ref.all<JSONInt> { value < 10 } }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONInt") { it.target }
-            expect(JSONString("hello")) { it.value }
-            expect(ref.untypedChild(1)) { it.key }
+        shouldThrow<JSONTypeException> { ref.all<JSONInt> { value < 10 } }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONInt"
+            it.value shouldBe JSONString("hello")
+            it.key shouldBe ref.untypedChild(1)
         }
     }
 
@@ -145,111 +145,109 @@ class ExtensionTest {
         val beta = resourceRef.map<JSONInt, Int>("beta") {
             it.value
         }
-        expect(456) { beta }
-        assertFailsWith<ResourceRefException> {
+        beta shouldBe 456
+        shouldThrow<ResourceRefException> {
             resourceRef.map<JSONInt, Int>("omega") { it.value }
         }.let {
-            assertTrue(it.message.startsWith("Can't locate JSON property \"omega\""))
-            assertTrue(it.message.endsWith("src/test/resources/json/json1.json#"))
-            expect("Can't locate JSON property \"omega\"") { it.text }
-            expect(resourceRef) { it.resourceRef }
+            it.message shouldStartWith "Can't locate JSON property \"omega\""
+            it.message shouldEndWith "src/test/resources/json/json1.json#"
+            it.text shouldBe "Can't locate JSON property \"omega\""
+            it.resourceRef shouldBe resourceRef
         }
         val gamma: Int = resourceRef.map("gamma") { prop: JSONInt -> prop.value }
-        expect(888) { gamma }
+        gamma shouldBe 888
         // alternative, following deprecation of original function, using recommended replacement code
         val beta2 = resourceRef.child<JSONInt>("beta").value
-        expect(456) { beta2 }
-        assertFailsWith<ResourceRefException> {
+        beta2 shouldBe 456
+        shouldThrow<ResourceRefException> {
             resourceRef.child<JSONInt>("omega").value
         }.let {
-            assertTrue(it.message.startsWith("Can't locate JSON property \"omega\""))
-            assertTrue(it.message.endsWith("src/test/resources/json/json1.json#"))
-            expect("Can't locate JSON property \"omega\"") { it.text }
-            expect(resourceRef) { it.resourceRef }
+            it.message shouldStartWith "Can't locate JSON property \"omega\""
+            it.message shouldEndWith "src/test/resources/json/json1.json#"
+            it.text shouldBe "Can't locate JSON property \"omega\""
+            it.resourceRef shouldBe resourceRef
         }
     }
 
     @Test fun `should get optional String`() {
-        expect("A string") { resourceRef.optionalString("delta") }
-        assertNull(resourceRef.optionalString("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalString("alpha") }.let {
-            expect("Node") { it.nodeName }
-            expect("String") { it.target }
-            expect(JSONInt(123)) { it.value }
-            expect(resourceRef.untypedChild("alpha")) { it.key }
+        resourceRef.optionalString("delta") shouldBe "A string"
+        resourceRef.optionalString("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalString("alpha") }.let {
+            it.nodeName shouldBe "Node"
+            it.expected shouldBe "String"
+            it.value shouldBe JSONInt(123)
+            it.key shouldBe resourceRef.untypedChild("alpha")
         }
     }
 
     @Test fun `should get optional Boolean`() {
-        expect(true) { resourceRef.optionalBoolean("epsilon") }
-        assertNull(resourceRef.optionalBoolean("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalBoolean("alpha") }.let {
-            expect("Node") { it.nodeName }
-            expect("Boolean") { it.target }
-            expect(JSONInt(123)) { it.value }
-            expect(resourceRef.untypedChild("alpha")) { it.key }
+        resourceRef.optionalBoolean("epsilon") shouldBe true
+        resourceRef.optionalBoolean("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalBoolean("alpha") }.let {
+            it.nodeName shouldBe "Node"
+            it.expected shouldBe "Boolean"
+            it.value shouldBe JSONInt(123)
+            it.key shouldBe resourceRef.untypedChild("alpha")
         }
     }
 
     @Test fun `should get optional Int`() {
-        expect(123) { resourceRef.optionalInt("alpha") }
-        assertNull(resourceRef.optionalInt("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalInt("delta") }.let {
-            expect("Node") { it.nodeName }
-            expect("Int") { it.target }
-            expect(JSONString("A string")) { it.value }
-            expect(resourceRef.untypedChild("delta")) { it.key }
+        resourceRef.optionalInt("alpha") shouldBe 123
+        resourceRef.optionalInt("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalInt("delta") }.let {
+            it.nodeName shouldBe "Node"
+            it.expected shouldBe "Int"
+            it.value shouldBe JSONString("A string")
+            it.key shouldBe resourceRef.untypedChild("delta")
         }
     }
 
     @Test fun `should get optional Long`() {
-        expect(123456789123456789) { resourceRef.optionalLong("sigma") }
-        expect(123) { resourceRef.optionalLong("alpha") }
-        assertNull(resourceRef.optionalLong("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalLong("delta") }.let {
-            expect("Node") { it.nodeName }
-            expect("Long") { it.target }
-            expect(JSONString("A string")) { it.value }
-            expect(resourceRef.untypedChild("delta")) { it.key }
+        resourceRef.optionalLong("sigma") shouldBe 123456789123456789
+        resourceRef.optionalLong("alpha") shouldBe 123
+        resourceRef.optionalLong("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalLong("delta") }.let {
+            it.nodeName shouldBe "Node"
+            it.expected shouldBe "Long"
+            it.value shouldBe JSONString("A string")
+            it.key shouldBe resourceRef.untypedChild("delta")
         }
     }
 
     @Test fun `should get optional Decimal`() {
-        expect(BigDecimal("1.5")) { resourceRef.optionalDecimal("omicron") }
-        expect(BigDecimal(123456789123456789)) { resourceRef.optionalDecimal("sigma") }
-        expect(BigDecimal(123)) { resourceRef.optionalDecimal("alpha") }
-        assertNull(resourceRef.optionalDecimal("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalDecimal("delta") }.let {
-            expect("Node") { it.nodeName }
-            expect("Decimal") { it.target }
-            expect(JSONString("A string")) { it.value }
-            expect(resourceRef.untypedChild("delta")) { it.key }
+        resourceRef.optionalDecimal("omicron") shouldBe BigDecimal("1.5")
+        resourceRef.optionalDecimal("sigma") shouldBe BigDecimal(123456789123456789)
+        resourceRef.optionalDecimal("alpha") shouldBe BigDecimal(123)
+        resourceRef.optionalDecimal("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalDecimal("delta") }.let {
+            it.nodeName shouldBe "Node"
+            it.expected shouldBe "Decimal"
+            it.value shouldBe JSONString("A string")
+            it.key shouldBe resourceRef.untypedChild("delta")
         }
     }
 
     @Test fun `should get optional child object`() {
         val childRef = resourceRef.optionalChild<JSONObject>("substructure")
-        assertNotNull(childRef)
-        expect(111) { childRef.node["one"].asInt }
-        assertNull(resourceRef.optionalChild<JSONObject>("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalChild<JSONObject>("delta") }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONObject") { it.target }
-            expect(JSONString("A string")) { it.value }
-            expect(resourceRef.untypedChild("delta")) { it.key }
+        childRef.shouldBeNonNull().node["one"].asInt shouldBe 111
+        resourceRef.optionalChild<JSONObject>("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalChild<JSONObject>("delta") }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONObject"
+            it.value shouldBe JSONString("A string")
+            it.key shouldBe resourceRef.untypedChild("delta")
         }
     }
 
     @Test fun `should get optional child array`() {
         val childRef = resourceRef.optionalChild<JSONArray>("powersOfTen")
-        assertNotNull(childRef)
-        expect(100) { childRef.node[2].asInt }
-        assertNull(resourceRef.optionalChild<JSONArray>("omega"))
-        assertFailsWith<JSONTypeException> { resourceRef.optionalChild<JSONArray>("delta") }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONArray") { it.target }
-            expect(JSONString("A string")) { it.value }
-            expect(resourceRef.untypedChild("delta")) { it.key }
+        childRef.shouldBeNonNull().node[2].asInt shouldBe 100
+        resourceRef.optionalChild<JSONArray>("omega") shouldBe null
+        shouldThrow<JSONTypeException> { resourceRef.optionalChild<JSONArray>("delta") }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONArray"
+            it.value shouldBe JSONString("A string")
+            it.key shouldBe resourceRef.untypedChild("delta")
         }
     }
 
@@ -259,9 +257,9 @@ class ExtensionTest {
         ref.forEachKey<JSONInt> {
             results.add(it to node.value)
         }
-        expect(2) { results.size }
-        expect("one" to 111) { results[0] }
-        expect("two" to 222) { results[1] }
+        results.size shouldBe 2
+        results[0] shouldBe ("one" to 111)
+        results[1] shouldBe ("two" to 222)
     }
 
     @Test fun `should iterate over array`() {
@@ -270,169 +268,167 @@ class ExtensionTest {
         ref.forEach<JSONObject> {
             results.add(it to node["f1"].asString)
         }
-        expect(0 to "AAA") { results[0] }
-        expect(1 to "BBB") { results[1] }
-        expect(2 to "CCC") { results[2] }
-        expect(3 to "DDD") { results[3] }
+        results.size shouldBe 4
+        results[0] shouldBe (0 to "AAA")
+        results[1] shouldBe (1 to "BBB")
+        results[2] shouldBe (2 to "CCC")
+        results[3] shouldBe (3 to "DDD")
     }
 
     @Test fun `should navigate to child of object`() {
         val ref = resourceRef.child<JSONInt>("alpha")
-        expect(123) { ref.node.value }
-        expect("$resourceRef/alpha") { ref.toString() }
+        ref.node.value shouldBe 123
+        ref.toString() shouldBe "$resourceRef/alpha"
     }
 
     @Test fun `should navigate to nullable child of object`() {
         val ref1 = resourceRef.child<JSONInt?>("alpha")
-        expect(123) { ref1.node?.value }
-        expect("$resourceRef/alpha") { ref1.toString() }
+        ref1.node?.value shouldBe 123
+        ref1.toString() shouldBe "$resourceRef/alpha"
         val ref2 = resourceRef.child<JSONInt?>("phi")
-        assertNull(ref2.node)
-        expect("$resourceRef/phi") { ref2.toString() }
+        ref2.node shouldBe null
+        ref2.toString() shouldBe "$resourceRef/phi"
     }
 
     @Test fun `should fail navigating to child of object of incorrect type`() {
-        assertFailsWith<JSONTypeException> { resourceRef.child<JSONString>("alpha") }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONString") { it.target }
-            expect(JSONInt(123)) { it.value }
-            expect(resourceRef.untypedChild("alpha")) { it.key }
+        shouldThrow<JSONTypeException> { resourceRef.child<JSONString>("alpha") }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONString"
+            it.value shouldBe JSONInt(123)
+            it.key shouldBe resourceRef.untypedChild("alpha")
         }
     }
 
     @Test fun `should fail navigating to null child of object of non-nullable type`() {
-        assertFailsWith<JSONTypeException> { resourceRef.child<JSONInt>("phi") }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONInt") { it.target }
-            assertNull(it.value)
-            expect(resourceRef.untypedChild("phi")) { it.key }
+        shouldThrow<JSONTypeException> { resourceRef.child<JSONInt>("phi") }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONInt"
+            it.value shouldBe null
+            it.key shouldBe resourceRef.untypedChild("phi")
         }
     }
 
     @Test fun `should fail navigating to child of object of incorrect nullable type`() {
-        assertFailsWith<JSONTypeException> { resourceRef.child<JSONString?>("alpha") }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONString?") { it.target }
-            expect(JSONInt(123)) { it.value }
-            expect(resourceRef.untypedChild("alpha")) { it.key }
+        shouldThrow<JSONTypeException> { resourceRef.child<JSONString?>("alpha") }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONString?"
+            it.value shouldBe JSONInt(123)
+            it.key shouldBe resourceRef.untypedChild("alpha")
         }
     }
 
     @Test fun `should navigate to child of array`() {
         val refArray = resourceRef.child<JSONArray>("heterogeneousArray")
         val refInt = refArray.child<JSONInt>(0)
-        expect(1) { refInt.node.value }
-        expect("$resourceRef/heterogeneousArray/0") { refInt.toString() }
+        refInt.node.value shouldBe 1
+        refInt.toString() shouldBe "$resourceRef/heterogeneousArray/0"
     }
 
     @Test fun `should navigate to nullable child of array`() {
         val refArray = resourceRef.child<JSONArray>("heterogeneousArray")
         val refInt1 = refArray.child<JSONInt?>(0)
-        expect(1) { refInt1.node?.value }
-        expect("$resourceRef/heterogeneousArray/0") { refInt1.toString() }
+        refInt1.node?.value shouldBe 1
+        refInt1.toString() shouldBe "$resourceRef/heterogeneousArray/0"
         val refInt2 = refArray.child<JSONInt?>(3)
-        assertNull(refInt2.node)
-        expect("$resourceRef/heterogeneousArray/3") { refInt2.toString() }
+        refInt2.node shouldBe null
+        refInt2.toString() shouldBe "$resourceRef/heterogeneousArray/3"
     }
 
     @Test fun `should fail navigating to child of array of incorrect type`() {
         val refArray = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { refArray.child<JSONString>(0) }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONString") { it.target }
-            expect(JSONInt(1)) { it.value }
-            expect(refArray.untypedChild(0)) { it.key }
+        shouldThrow<JSONTypeException> { refArray.child<JSONString>(0) }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONString"
+            it.value shouldBe JSONInt(1)
+            it.key shouldBe refArray.untypedChild(0)
         }
     }
 
     @Test fun `should fail navigating to null child of array of non-nullable type`() {
         val refArray = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { refArray.child<JSONInt>(3) }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONInt") { it.target }
-            assertNull(it.value)
-            expect(refArray.untypedChild(3)) { it.key }
+        shouldThrow<JSONTypeException> { refArray.child<JSONInt>(3) }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONInt"
+            it.value shouldBe null
+            it.key shouldBe refArray.untypedChild(3)
         }
     }
 
     @Test fun `should fail navigating to child of array of incorrect nullable type`() {
         val refArray = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertFailsWith<JSONTypeException> { refArray.child<JSONString?>(0) }.let {
-            expect("Child") { it.nodeName }
-            expect("JSONString?") { it.target }
-            expect(JSONInt(1)) { it.value }
-            expect(refArray.untypedChild(0)) { it.key }
+        shouldThrow<JSONTypeException> { refArray.child<JSONString?>(0) }.let {
+            it.nodeName shouldBe "Child"
+            it.expected shouldBe "JSONString?"
+            it.value shouldBe JSONInt(1)
+            it.key shouldBe refArray.untypedChild(0)
         }
     }
 
     @Test fun `should get untyped child of object`() {
         val child = resourceRef.untypedChild("alpha")
-        assertTrue(child.isRef<JSONInt>())
+        child.isRef<JSONInt>() shouldBe true
     }
 
     @Test fun `should get untyped child of array`() {
         val ref = resourceRef.child<JSONArray>("heterogeneousArray")
-        val child0 = ref.untypedChild(0)
-        assertTrue(child0.isRef<JSONInt>())
-        val child1 = ref.untypedChild(1)
-        assertTrue(child1.isRef<JSONString>())
-        val child2 = ref.untypedChild(2)
-        assertTrue(child2.isRef<JSONBoolean>())
+        ref.untypedChild(0).isRef<JSONInt>() shouldBe true
+        ref.untypedChild(1).isRef<JSONString>() shouldBe true
+        ref.untypedChild(2).isRef<JSONBoolean>() shouldBe true
     }
 
     @Test fun `should correctly report hasChild for object`() {
-        assertTrue(resourceRef.hasChild<JSONInt>("alpha"))
-        assertTrue(resourceRef.hasChild<JSONArray>("powersOfTen"))
-        assertTrue(resourceRef.hasChild<JSONObject>("substructure"))
-        assertTrue(resourceRef.hasChild<JSONString>("delta"))
-        assertFalse(resourceRef.hasChild<JSONString>("beta"))
-        assertFalse(resourceRef.hasChild<JSONString>("omega"))
+        resourceRef.hasChild<JSONInt>("alpha") shouldBe true
+        resourceRef.hasChild<JSONArray>("powersOfTen") shouldBe true
+        resourceRef.hasChild<JSONObject>("substructure") shouldBe true
+        resourceRef.hasChild<JSONString>("delta") shouldBe true
+        resourceRef.hasChild<JSONString>("beta") shouldBe false
+        resourceRef.hasChild<JSONString>("omega") shouldBe false
     }
 
     @Test fun `should correctly report nullable hasChild for object`() {
-        assertTrue(resourceRef.hasChild<JSONInt>("alpha"))
-        assertTrue(resourceRef.hasChild<JSONInt?>("alpha"))
-        assertTrue(resourceRef.hasChild<JSONInt?>("phi"))
-        assertFalse(resourceRef.hasChild<JSONString?>("beta"))
-        assertFalse(resourceRef.hasChild<JSONString?>("omega"))
+        resourceRef.hasChild<JSONInt>("alpha") shouldBe true
+        resourceRef.hasChild<JSONInt?>("alpha") shouldBe true
+        resourceRef.hasChild<JSONInt?>("phi") shouldBe true
+        resourceRef.hasChild<JSONString?>("beta") shouldBe false
+        resourceRef.hasChild<JSONString?>("omega") shouldBe false
     }
 
     @Test fun `should correctly report hasChild for array`() {
         val ref1 = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertTrue(ref1.hasChild<JSONInt>(0))
-        assertTrue(ref1.hasChild<JSONNumber>(0))
-        assertTrue(ref1.hasChild<JSONString>(1))
-        assertTrue(ref1.hasChild<JSONBoolean>(2))
-        assertFalse(ref1.hasChild<JSONInt>(1))
-        assertFalse(ref1.hasChild<JSONValue>(4))
+        ref1.hasChild<JSONInt>(0) shouldBe true
+        ref1.hasChild<JSONNumber>(0) shouldBe true
+        ref1.hasChild<JSONString>(1) shouldBe true
+        ref1.hasChild<JSONBoolean>(2) shouldBe true
+        ref1.hasChild<JSONInt>(1) shouldBe false
+        ref1.hasChild<JSONValue>(4) shouldBe false
     }
 
     @Test fun `should correctly report nullable hasChild for array`() {
         val ref1 = resourceRef.child<JSONArray>("heterogeneousArray")
-        assertTrue(ref1.hasChild<JSONInt?>(0))
-        assertTrue(ref1.hasChild<JSONString?>(1))
-        assertTrue(ref1.hasChild<JSONString?>(3))
-        assertFalse(ref1.hasChild<JSONInt?>(1))
-        assertFalse(ref1.hasChild<JSONValue?>(4))
+        ref1.hasChild<JSONInt?>(0) shouldBe true
+        ref1.hasChild<JSONString?>(1) shouldBe true
+        ref1.hasChild<JSONString?>(3) shouldBe true
+        ref1.hasChild<JSONInt?>(1) shouldBe false
+        ref1.hasChild<JSONValue?>(4) shouldBe false
     }
 
     @Test fun `should create ResourceRef using ref with explicit type`() {
         val ref = resource.ref<JSONObject>()
-        expect(123) { ref.optionalInt("alpha") }
-        expect("A string") { ref.optionalString("delta") }
+        ref.optionalInt("alpha") shouldBe 123
+        ref.optionalString("delta") shouldBe "A string"
     }
 
     @Test fun `should create ResourceRef using ref with implied type`() {
         val ref: ResourceRef<JSONObject> = resource.ref()
-        expect(123) { ref.optionalInt("alpha") }
-        expect("A string") { ref.optionalString("delta") }
+        ref.optionalInt("alpha") shouldBe 123
+        ref.optionalString("delta") shouldBe "A string"
     }
 
     @Test fun `should get value of node`() {
         val refInt = resourceRef.child<JSONInt>("alpha")
-        expect(123) { refInt.value }
+        refInt.value shouldBe 123
         val refString = resourceRef.child<JSONString>("delta")
-        expect("A string") { refString.value }
+        refString.value shouldBe "A string"
     }
 
 }

@@ -26,15 +26,15 @@
 package io.kjson.resource
 
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
-import kotlin.test.expect
 
 import java.io.File
 import java.net.URL
+
+import io.kstuff.test.shouldBe
+import io.kstuff.test.shouldBeSameInstance
+import io.kstuff.test.shouldBeType
+import io.kstuff.test.shouldEndWith
+import io.kstuff.test.shouldThrow
 
 import io.kjson.JSON.asInt
 import io.kjson.JSONArray
@@ -57,125 +57,126 @@ class ResourceRefTest {
     private val resourceRef = ResourceRef(resource, JSONRef(json)).asRef<JSONObject>()
 
     @Test fun `should create ResourceRef`() {
-        assertTrue(resourceRef.resourceURL.toString().endsWith("json/json1.json"))
-        assertSame(json, resourceRef.node)
-        expect(JSONPointer.root) { resourceRef.pointer }
-        expect(JSONInt(123)) { resourceRef.child<JSONInt>("alpha").node }
+        resourceRef.resourceURL.toString() shouldEndWith "json/json1.json"
+        resourceRef.node shouldBeSameInstance json
+        resourceRef.pointer shouldBe JSONPointer.root
+        resourceRef.child<JSONInt>("alpha").node shouldBe JSONInt(123)
     }
 
     @Test fun `should navigate to parent`() {
         val ref = ResourceRef(resource, JSONRef.of(json, JSONPointer("/substructure/one")))
         val parent = ref.parent<JSONObject>()
-        expect(222) { parent.node["two"].asInt }
-        expect(JSONPointer("/substructure")) { parent.pointer }
+        parent.node["two"].asInt shouldBe 222
+        parent.pointer shouldBe JSONPointer("/substructure")
         val grandParent = parent.parent<JSONObject>()
-        expect(123) { grandParent.node["alpha"].asInt }
-        expect(JSONPointer.root) { grandParent.pointer }
+        grandParent.node["alpha"].asInt shouldBe 123
+        grandParent.pointer shouldBe JSONPointer.root
     }
 
     @Test fun `should fail navigating to parent of root`() {
-        assertFailsWith<JSONPointerException> { resourceRef.parent<JSONArray>() }.let {
-            expect("Can't get parent of root JSON Pointer") { it.message }
+        shouldThrow<JSONPointerException>("Can't get parent of root JSON Pointer") {
+            resourceRef.parent<JSONArray>()
         }
     }
 
     @Test fun `should fail navigating to parent of incorrect type`() {
         val ref = ResourceRef(resource, JSONRef.of(json, JSONPointer("/substructure/one")))
-        assertFailsWith<JSONTypeException> { ref.parent<JSONArray>() }.let {
-            expect("Parent") { it.nodeName }
-            expect("JSONArray") { it.target }
-            assertIs<JSONObject>(it.value)
-            expect(resourceRef.untypedChild("substructure")) { it.key }
+        shouldThrow<JSONTypeException> {
+            ref.parent<JSONArray>()
+        }.let {
+            it.nodeName shouldBe "Parent"
+            it.expected shouldBe "JSONArray"
+            it.value.shouldBeType<JSONObject>()
+            it.key shouldBe resourceRef.untypedChild("substructure")
         }
     }
 
     @Test fun `should convert to ref of correct type`() {
         val ref = resourceRef.child<JSONValue?>("alpha")
         val refInt = ref.asRef<JSONInt>()
-        expect(123) { refInt.node.value }
+        refInt.node.value shouldBe 123
     }
 
     @Test fun `should fail converting to ref of incorrect type`() {
         val ref = resourceRef.child<JSONValue?>("alpha")
-        assertFailsWith<JSONTypeException> { ref.asRef<JSONString>() }.let {
-            expect("Node") { it.nodeName }
-            expect("JSONString") { it.target }
-            expect(JSONInt(123)) { it.value }
-            expect(resourceRef.untypedChild("alpha")) { it.key }
+        shouldThrow<JSONTypeException> { ref.asRef<JSONString>() }.let {
+            it.nodeName shouldBe "Node"
+            it.expected shouldBe "JSONString"
+            it.value shouldBe JSONInt(123)
+            it.key shouldBe resourceRef.untypedChild("alpha")
         }
     }
 
     @Test fun `should convert to ref of nullable type`() {
         val ref = resourceRef.child<JSONValue?>("alpha")
         val refInt = ref.asRef<JSONInt?>()
-        expect(123) { refInt.node?.value }
+        refInt.node?.value shouldBe 123
     }
 
     @Test fun `should test for specified type`() {
         val ref = resourceRef.child<JSONValue?>("alpha")
-        assertTrue(ref.isRef<JSONInt>())
-        assertTrue(ref.isRef<JSONNumber>())
-        assertTrue(ref.isRef<JSONValue>())
-        assertFalse(ref.isRef<JSONString>())
+        ref.isRef<JSONInt>() shouldBe true
+        ref.isRef<JSONNumber>() shouldBe true
+        ref.isRef<JSONValue>() shouldBe true
+        ref.isRef<JSONString>() shouldBe false
     }
 
     @Test fun `should test for specified type including nullable`() {
         val ref = resourceRef.child<JSONValue>("alpha")
-        assertTrue(ref.isRef<JSONInt?>())
-        assertTrue(ref.isRef<JSONNumber?>())
-        assertTrue(ref.isRef<JSONValue?>())
-        assertFalse(ref.isRef<JSONString?>())
+        ref.isRef<JSONInt?>() shouldBe true
+        ref.isRef<JSONNumber?>() shouldBe true
+        ref.isRef<JSONValue?>() shouldBe true
+        ref.isRef<JSONString?>() shouldBe false
     }
 
     @Test fun `should test for specified type with null value`() {
         val ref = resourceRef.child<JSONValue?>("phi")
-        assertTrue(ref.isRef<JSONInt?>())
-        assertTrue(ref.isRef<JSONNumber?>())
-        assertTrue(ref.isRef<JSONValue?>())
-        assertTrue(ref.isRef<JSONString?>())
+        ref.isRef<JSONInt?>() shouldBe true
+        ref.isRef<JSONNumber?>() shouldBe true
+        ref.isRef<JSONValue?>() shouldBe true
+        ref.isRef<JSONString?>() shouldBe true
     }
 
     @Test fun `should resolve relative reference within same resource`() {
         val ref1 = resourceRef.resolve<JSONObject>("#/substructure")
-        expect(JSONInt(222)) { ref1.node["two"] }
+        ref1.node["two"] shouldBe JSONInt(222)
         val ref2 = ref1.resolve<JSONObject>("#/complexArray/2")
-        expect(JSONString("CCC")) { ref2.node["f1"] }
+        ref2.node["f1"] shouldBe JSONString("CCC")
     }
 
     @Test fun `should resolve relative reference to another resource`() {
         val ref1 = resourceRef.resolve<JSONObject>("json2.json")
-        expect(JSONInt(12345)) { ref1.node["field1"] }
+        ref1.node["field1"] shouldBe JSONInt(12345)
     }
 
     @Test fun `should resolve relative reference to specified node in another resource`() {
         val ref1 = resourceRef.resolve<JSONObject>("json2.json#/field2")
-        expect(JSONInt(10)) { ref1.node["sub1"] }
+        ref1.node["sub1"] shouldBe JSONInt(10)
     }
 
     @Test fun `should fail when trying to resolve incorrect relative reference`() {
-        assertFailsWith<ResourceRefException> { resourceRef.resolve<JSONObject>("json2.json#/field2/wrong") }.let {
-            expect("Can't locate JSON property \"wrong\", at src/test/resources/json/json2.json#/field2") { it.message }
-            expect("Can't locate JSON property \"wrong\"") { it.text }
+        shouldThrow<ResourceRefException> { resourceRef.resolve<JSONObject>("json2.json#/field2/wrong") }.let {
+            it.message shouldBe "Can't locate JSON property \"wrong\", at src/test/resources/json/json2.json#/field2"
+            it.text shouldBe "Can't locate JSON property \"wrong\""
             val resultResource = loader.resource(File("src/test/resources/json/json2.json"))
             val resultRef = JSONRef(resultResource.load()).asRef<JSONObject>().child<JSONObject>("field2")
-            expect(ResourceRef(resultResource, resultRef)) { it.resourceRef }
-            expect(resultRef.pointer) { it.pointer }
+            it.resourceRef shouldBe ResourceRef(resultResource, resultRef)
+            it.pointer shouldBe resultRef.pointer
         }
     }
 
     @Test fun `should resolve relative reference to specified node in an external resource`() {
         val ref1 = resourceRef.resolve<JSONObject>("http://kjson.io/json/http/testhttp1.json#/properties/xxx")
-        expect(JSONString("http://kjson.io/json/http/testhttp2.json#/\$defs/Def1")) { ref1.node["\$ref"] }
+        ref1.node["\$ref"] shouldBe JSONString("http://kjson.io/json/http/testhttp2.json#/\$defs/Def1")
     }
 
     @Test fun `should simplify path in toString`() {
-        expect("src/test/resources/json/json1.json#") { resourceRef.toString() }
-        expect("src/test/resources/json/json1.json#/substructure") {
-            resourceRef.child<JSONObject>("substructure").toString()
-        }
+        resourceRef.toString() shouldBe "src/test/resources/json/json1.json#"
+        resourceRef.child<JSONObject>("substructure").toString() shouldBe
+                "src/test/resources/json/json1.json#/substructure"
         val resourceHTTP = loader.resource(URL("http://kjson.io/json/http/testhttp1.json"))
         val resourceRefHTTP = ResourceRef(resourceHTTP, JSONRef(resourceHTTP.load()))
-        expect("http://kjson.io/json/http/testhttp1.json#") { resourceRefHTTP.toString() }
+        resourceRefHTTP.toString() shouldBe "http://kjson.io/json/http/testhttp1.json#"
     }
 
 }

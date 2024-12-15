@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [3.1] - 2024-12-15
+### Changed
+- `pom.xml`: updated dependency version
+- tests: converted to `should-test` library
+
 ## [3.0] - 2024-11-19
 ### Changed
 - `ResourceRef`, `RefResourceLoader`, `Extension.kt`: removed restriction that `resource` always used `JSONObject`

@@ -26,15 +26,17 @@
 package io.kjson.resource
 
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.expect
+
 import java.io.File
 import java.io.FileWriter
 import java.net.URI
+
+import io.kstuff.test.shouldBe
+import io.kstuff.test.shouldBeNonNull
+import io.kstuff.test.shouldBeType
+import io.kstuff.test.shouldEndWith
+import io.kstuff.test.shouldThrow
+
 import io.kjson.JSON.asInt
 import io.kjson.JSONObject
 import io.kjson.resource.RefResourceLoader.Companion.looksLikeYAML
@@ -62,8 +64,7 @@ class RefResourceLoaderTest {
             // read file and check value is 111
             val refResourceLoader = RefResourceLoader()
             with(refResourceLoader.load("$dirName/$fileName")) {
-                assertIs<JSONObject>(this)
-                expect(111) { this["value"].asInt }
+                shouldBeType<JSONObject>()["value"].asInt shouldBe 111
             }
             // now write file with 999
             FileWriter(file1).use {
@@ -71,15 +72,13 @@ class RefResourceLoaderTest {
             }
             // read file and check value is still 111 because json was cached
             with(refResourceLoader.load("$dirName/$fileName")) {
-                assertIs<JSONObject>(this)
-                expect(111) { this["value"].asInt }
+                shouldBeType<JSONObject>()["value"].asInt shouldBe 111
             }
             // clear cache
             refResourceLoader.clearCache()
             // read file and check value is now 999
             with(refResourceLoader.load("$dirName/$fileName")) {
-                assertIs<JSONObject>(this)
-                expect(999) { this["value"].asInt }
+                shouldBeType<JSONObject>()["value"].asInt shouldBe 999
             }
         }
         finally {
@@ -108,23 +107,20 @@ class RefResourceLoaderTest {
             // read file and check value is 111
             val refResourceLoader = RefResourceLoader()
             with(refResourceLoader.load("$dirName/$fileName")) {
-                assertIs<JSONObject>(this)
-                expect(111) { this["value"].asInt }
+                shouldBeType<JSONObject>()["value"].asInt shouldBe 111
             }
             // add a dummy entry to the cache
             val resource = refResourceLoader.resource(File("unreal"))
             refResourceLoader.addToCache(resource.resourceURL.toString(), json222)
             // read nonexistent file and check value is 222
             with(refResourceLoader.load("unreal")) {
-                assertIs<JSONObject>(this)
-                expect(222) { this["value"].asInt }
+                shouldBeType<JSONObject>()["value"].asInt shouldBe 222
             }
             // remove cache entry and check read fails
             refResourceLoader.removeFromCache(resource.resourceURL.toString())
-            assertFailsWith<ResourceNotFoundException> { refResourceLoader.load("unreal") }.let {
+            shouldThrow<ResourceNotFoundException> { refResourceLoader.load("unreal") }.let {
                 it.message.let { m ->
-                    assertNotNull(m)
-                    assertTrue(m.endsWith("unreal"))
+                    m.shouldBeNonNull() shouldEndWith "unreal"
                 }
             }
         }
@@ -135,34 +131,34 @@ class RefResourceLoaderTest {
     }
 
     @Test fun `should identify resource as YAML from MIME type`() {
-        assertTrue(looksLikeYAML("file.any", "application/yaml"))
-        assertTrue(looksLikeYAML("file.any", "application/config+yaml"))
-        assertTrue(looksLikeYAML("file.json", "text/yaml"))
+        looksLikeYAML("file.any", "application/yaml") shouldBe true
+        looksLikeYAML("file.any", "application/config+yaml") shouldBe true
+        looksLikeYAML("file.json", "text/yaml") shouldBe true
     }
 
     @Test fun `should identify resource as YAML from filename extension`() {
-        assertTrue(looksLikeYAML("file.yaml", "text/string"))
-        assertTrue(looksLikeYAML("file.yml", null))
-        assertFalse(looksLikeYAML("file.yml", "application/json"))
+        looksLikeYAML("file.yaml", "text/string") shouldBe true
+        looksLikeYAML("file.yml", null) shouldBe true
+        looksLikeYAML("file.yml", "application/json") shouldBe false
     }
 
     @Test fun `should identify resource as JSON by default`() {
-        assertFalse(looksLikeYAML("file.txt", "text/string"))
-        assertFalse(looksLikeYAML("file.txt", null))
-        assertFalse(looksLikeYAML("file.json", "application/json"))
+        looksLikeYAML("file.txt", "text/string") shouldBe false
+        looksLikeYAML("file.txt", null) shouldBe false
+        looksLikeYAML("file.json", "application/json") shouldBe false
     }
 
     @Test fun `should replace or remove fragment from URI`() {
         val uri = URI("https://example.com/path#frag")
-        expect("https://example.com/path#new") { uri.withFragment("new").toString() }
-        expect("https://example.com/path#") { uri.withFragment("").toString() }
-        expect("https://example.com/path") { uri.withFragment(null).toString() }
+        uri.withFragment("new").toString() shouldBe "https://example.com/path#new"
+        uri.withFragment("").toString() shouldBe "https://example.com/path#"
+        uri.withFragment(null).toString() shouldBe "https://example.com/path"
     }
 
     @Test fun `should add fragment to URI`() {
         val uri = URI("https://example.com/path")
-        expect("https://example.com/path#new") { uri.withFragment("new").toString() }
-        expect("https://example.com/path") { uri.withFragment(null).toString() }
+        uri.withFragment("new").toString() shouldBe "https://example.com/path#new"
+        uri.withFragment(null).toString() shouldBe "https://example.com/path"
     }
 
 }
