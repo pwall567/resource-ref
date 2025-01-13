@@ -111,13 +111,13 @@ class RefResourceLoaderTest {
             }
             // add a dummy entry to the cache
             val resource = refResourceLoader.resource(File("unreal"))
-            refResourceLoader.addToCache(resource.resourceURL.toString(), json222)
+            refResourceLoader.addToCache(resource.url.toString(), json222)
             // read nonexistent file and check value is 222
             with(refResourceLoader.load("unreal")) {
                 shouldBeType<JSONObject>()["value"].asInt shouldBe 222
             }
             // remove cache entry and check read fails
-            refResourceLoader.removeFromCache(resource.resourceURL.toString())
+            refResourceLoader.removeFromCache(resource.url.toString())
             shouldThrow<ResourceNotFoundException> { refResourceLoader.load("unreal") }.let {
                 it.message.let { m ->
                     m.shouldBeNonNull() shouldEndWith "unreal"

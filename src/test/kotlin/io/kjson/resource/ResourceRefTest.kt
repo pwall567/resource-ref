@@ -57,7 +57,7 @@ class ResourceRefTest {
     private val resourceRef = ResourceRef(resource, JSONRef(json)).asRef<JSONObject>()
 
     @Test fun `should create ResourceRef`() {
-        resourceRef.resourceURL.toString() shouldEndWith "json/json1.json"
+        resourceRef.url.toString() shouldEndWith "json/json1.json"
         resourceRef.node shouldBeSameInstance json
         resourceRef.pointer shouldBe JSONPointer.root
         resourceRef.child<JSONInt>("alpha").node shouldBe JSONInt(123)

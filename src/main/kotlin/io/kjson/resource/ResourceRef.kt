@@ -54,8 +54,8 @@ class ResourceRef<out J : JSONValue?>(
 ) {
 
     /** The URL of the [Resource] */
-    val resourceURL: URL
-        get() = resource.resourceURL
+    val url: URL
+        get() = resource.url
 
     /** The `node` of the [JSONRef] */
     val node: J

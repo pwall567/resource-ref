@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.0] - 2025-01-14
+### Changed
+- `ResourceRef`, `RefResourceLoader`: adopted new naming policy from `resource-loader` (potential breaking change)
+- `pom.xml`: updated dependency version
+
 ## [3.1] - 2024-12-15
 ### Changed
 - `pom.xml`: updated dependency version

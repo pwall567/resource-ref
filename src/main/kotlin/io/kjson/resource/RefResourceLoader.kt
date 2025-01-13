@@ -50,10 +50,10 @@ class RefResourceLoader(
      * Load the resource identified by a [Resource] object.  This function returns a cached copy if available.
      */
     override fun load(resource: Resource<JSONValue?>): JSONValue? {
-        val cacheKey = resource.resourceURL.toString()
+        val cacheKey = resource.url.toString()
         if (resourceCache.containsKey(cacheKey))
             return resourceCache[cacheKey]
-        return load(openResource(resource))
+        return load(resource.open())
     }
 
     /**
