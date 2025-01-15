@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+### Changed
+- `pom.xml`: added missing sections (documentation only)
+- tests: updated tests involving Windows file path details
+
 ## [4.0] - 2025-01-14
 ### Changed
 - `ResourceRef`, `RefResourceLoader`: adopted new naming policy from `resource-loader` (potential breaking change)

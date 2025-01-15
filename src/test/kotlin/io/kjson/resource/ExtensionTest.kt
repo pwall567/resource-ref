@@ -48,6 +48,7 @@ import io.kjson.JSONValue
 import io.kjson.JSON.asInt
 import io.kjson.JSON.asString
 import io.kjson.pointer.JSONRef
+import io.kjson.resource.ResourceRefTest.Companion.pathOf
 
 class ExtensionTest {
 
@@ -151,6 +152,7 @@ class ExtensionTest {
         }.let {
             it.message shouldStartWith "Can't locate JSON property \"omega\""
             it.message shouldEndWith "src/test/resources/json/json1.json#"
+            it.message shouldEndWith pathOf("src", "test", "resources", "json", "json1.json") + '#'
             it.text shouldBe "Can't locate JSON property \"omega\""
             it.resourceRef shouldBe resourceRef
         }
@@ -163,7 +165,7 @@ class ExtensionTest {
             resourceRef.child<JSONInt>("omega").value
         }.let {
             it.message shouldStartWith "Can't locate JSON property \"omega\""
-            it.message shouldEndWith "src/test/resources/json/json1.json#"
+            it.message shouldEndWith pathOf("src", "test", "resources", "json", "json1.json") + '#'
             it.text shouldBe "Can't locate JSON property \"omega\""
             it.resourceRef shouldBe resourceRef
         }

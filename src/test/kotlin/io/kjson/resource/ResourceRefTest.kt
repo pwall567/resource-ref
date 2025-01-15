@@ -156,7 +156,8 @@ class ResourceRefTest {
 
     @Test fun `should fail when trying to resolve incorrect relative reference`() {
         shouldThrow<ResourceRefException> { resourceRef.resolve<JSONObject>("json2.json#/field2/wrong") }.let {
-            it.message shouldBe "Can't locate JSON property \"wrong\", at src/test/resources/json/json2.json#/field2"
+            it.message shouldBe "Can't locate JSON property \"wrong\", at " +
+                    pathOf("src", "test", "resources", "json", "json2.json") + "#/field2"
             it.text shouldBe "Can't locate JSON property \"wrong\""
             val resultResource = loader.resource(File("src/test/resources/json/json2.json"))
             val resultRef = JSONRef(resultResource.load()).asRef<JSONObject>().child<JSONObject>("field2")
@@ -171,12 +172,18 @@ class ResourceRefTest {
     }
 
     @Test fun `should simplify path in toString`() {
-        resourceRef.toString() shouldBe "src/test/resources/json/json1.json#"
+        resourceRef.toString() shouldBe pathOf("src", "test", "resources", "json", "json1.json") + '#'
         resourceRef.child<JSONObject>("substructure").toString() shouldBe
-                "src/test/resources/json/json1.json#/substructure"
+                pathOf("src", "test", "resources", "json", "json1.json") + "#/substructure"
         val resourceHTTP = loader.resource(URL("http://kjson.io/json/http/testhttp1.json"))
         val resourceRefHTTP = ResourceRef(resourceHTTP, JSONRef(resourceHTTP.load()))
         resourceRefHTTP.toString() shouldBe "http://kjson.io/json/http/testhttp1.json#"
+    }
+
+    companion object {
+
+        fun pathOf(vararg elements: String) = elements.joinToString(File.separator)
+
     }
 
 }

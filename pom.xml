@@ -31,6 +31,25 @@
     </license>
   </licenses>
 
+  <scm>
+    <connection>scm:git:git://github.com/pwall567/resource-loader.git</connection>
+    <url>https://github.com/pwall567/resource-loader</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>pwall@pwall.net</id>
+      <name>Peter Wall</name>
+      <email>pwall@pwall.net</email>
+      <url>https://pwall.net</url>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>Australia/Sydney</timezone>
+    </developer>
+  </developers>
+
   <repositories>
     <repository>
       <id>mavenCentral</id>
