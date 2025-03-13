@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/pwall567/resource-ref/actions/workflows/build.yml/badge.svg)](https://github.com/pwall567/resource-ref/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=v2.0.21&color=7f52ff&logo=kotlin&logoColor=7f52ff)](https://github.com/JetBrains/kotlin/releases/tag/v2.0.21)
-[![Maven Central](https://img.shields.io/maven-central/v/io.kjson/resource-ref?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.kjson%22%20AND%20a:%22resource-ref%22)
+[![Maven Central](https://img.shields.io/maven-central/v/io.kjson/resource-ref?label=Maven%20Central)](https://central.sonatype.com/artifact/io.kjson/resource-ref)
 
 Library to manage Resource references using [URI](https://www.rfc-editor.org/info/rfc3986) and
 [JSON Pointer](https://tools.ietf.org/html/rfc6901).
@@ -90,25 +90,25 @@ More documentation to follow&hellip;
 
 ## Dependency Specification
 
-The latest version of the library is 4.3, and it may be obtained from the Maven Central repository.
+The latest version of the library is 4.4, and it may be obtained from the Maven Central repository.
 
 ### Maven
 ```xml
     <dependency>
       <groupId>io.kjson</groupId>
       <artifactId>resource-ref</artifactId>
-      <version>4.3</version>
+      <version>4.4</version>
     </dependency>
 ```
 ### Gradle
 ```groovy
-    implementation 'io.kjson:kjson-pointer:4.3'
+    implementation 'io.kjson:kjson-pointer:4.4'
 ```
 ### Gradle (kts)
 ```kotlin
-    implementation("io.kjson:kjson-pointer:4.3")
+    implementation("io.kjson:kjson-pointer:4.4")
 ```
 
 Peter Wall
 
-2025-02-09
+2025-03-14
