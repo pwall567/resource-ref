@@ -180,6 +180,15 @@ class ResourceRefTest {
         resourceRefHTTP.toString() shouldBe "http://kjson.io/json/http/testhttp1.json#"
     }
 
+    @Test fun `should rebase reference`() {
+        val ref1 = resourceRef.child<JSONObject>("substructure")
+        val ref2 = ref1.rebase()
+        ref2.resource shouldBeSameInstance resourceRef.resource
+        ref2.ref.pointer shouldBe JSONPointer.root
+        ref2.ref.base shouldBeSameInstance ref1.node
+        ref2.node shouldBeSameInstance ref1.node
+    }
+
     companion object {
 
         fun pathOf(vararg elements: String) = elements.joinToString(File.separator)

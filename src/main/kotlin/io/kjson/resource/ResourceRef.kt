@@ -172,6 +172,14 @@ class ResourceRef<out J : JSONValue?>(
         ).withCause(e)
     }
 
+    /**
+     * Create a new reference with the current node as the base.
+     */
+    fun rebase(): ResourceRef<J> = ResourceRef(
+        resource = resource,
+        ref = ref.rebase()
+    )
+
     override fun equals(other: Any?): Boolean = this === other ||
             other is ResourceRef<*> && resource == other.resource && ref == other.ref
 
