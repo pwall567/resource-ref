@@ -2,6 +2,11 @@
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [4.5] - 2025-06-09
+### Changed
+- `ResourceRef`: added `rebase()` function
+- `pom.xml`: updated dependency versions
+
 ## [4.4] - 2025-03-14
 ### Changed
 - `pom.xml`: updated dependency versions
